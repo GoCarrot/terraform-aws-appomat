@@ -47,6 +47,9 @@ variable "services" {
     volume_size                       = optional(number)
     component_name                    = optional(string)
     placement_strategy                = optional(string)
+    warm_pool                         = optional(bool, false)
+    kms_key_id                        = optional(string)
+    asg_metrics                       = optional(list(string))
     instance_security_group_ids       = optional(list(string))
     additional_tags_for_asg_instances = optional(map(string), {})
     lb_conditions = optional(
@@ -102,6 +105,7 @@ variable "tasks" {
     instance_type                     = optional(string)
     volume_size                       = optional(number)
     placement_strategy                = optional(string)
+    kms_key_id                        = optional(string)
     break_glass_key_name              = optional(string)
     instance_security_group_ids       = optional(list(string))
     additional_tags_for_asg_instances = optional(map(string), {})
@@ -124,9 +128,15 @@ variable "instance_type" {
   type = string
 }
 
-variable "min_size" {
-  type    = number
+variable "kms_key_id" {
+  type    = string
   default = null
+}
+
+variable "min_size" {
+  type        = number
+  description = "The default minimum number of instances to run for services in this application"
+  default     = null
 }
 
 variable "max_size" {

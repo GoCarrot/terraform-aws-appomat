@@ -301,7 +301,12 @@ module "services" {
   min_instances      = coalesce(each.value["min_size"], var.min_size, 2)
   max_instances      = coalesce(each.value["max_size"], var.max_size, 4)
 
+  warm_pool = each.value["warm_pool"]
+
   detailed_instance_monitoring = each.value["detailed_instance_monitoring"]
+  asg_metrics                  = each.value["asg_metrics"]
+
+  kms_key_id = try(coalesce(each.value["kms_key_id"], var.kms_key_id), null)
 
   create_role          = false
   iam_instance_profile = try(aws_iam_instance_profile.extended[each.key].arn, aws_iam_instance_profile.instance-profile.arn)
@@ -345,6 +350,8 @@ module "tasks" {
   placement_strategy = try(coalesce(each.value["placement_strategy"], var.placement_strategy), null)
   min_instances      = 0
   max_instances      = 0
+
+  kms_key_id = try(coalesce(each.value["kms_key_id"], var.kms_key_id), null)
 
   create_role          = false
   iam_instance_profile = try(aws_iam_instance_profile.extended[each.key].arn, aws_iam_instance_profile.instance-profile.arn)
