@@ -27,6 +27,14 @@ module "account-info" {
   account_id = data.aws_caller_identity.current.account_id
 }
 
+locals {
+  account_info        = module.account-info.account_info
+  param_prefix        = local.account_info["prefix"]
+  organization_prefix = module.account-info.organization_prefix
+  canonical_slug      = local.account_info["canonical_slug"]
+  core_config_prefix  = "${local.param_prefix}/config/core"
+}
+
 data "aws_ssm_parameters_by_path" "core-config" {
   provider = aws.meta
 
@@ -35,12 +43,9 @@ data "aws_ssm_parameters_by_path" "core-config" {
 }
 
 locals {
-  account_info        = module.account-info.account_info
-  param_prefix        = local.account_info["prefix"]
-  organization_prefix = module.account-info.organization_prefix
-  canonical_slug      = local.account_info["canonical_slug"]
-  core_config_prefix  = "${local.param_prefix}/config/core"
+  core_config = { for i in range(length(data.aws_ssm_parameters_by_path.core-config.names)) : trimprefix(data.aws_ssm_parameters_by_path.core-config.names[i], "${local.core_config_prefix}/") => data.aws_ssm_parameters_by_path.core-config.values[i] }
 }
+
 ###
 
 ### Tagging configuration
@@ -137,7 +142,7 @@ EOT
 
 ### Security Group (for tagging)
 locals {
-  vpc_id = nonsensitive(data.aws_ssm_parameters_by_path.core-config.values[index(data.aws_ssm_parameters_by_path.core-config.names, "${local.core_config_prefix}/vpc_id")])
+  vpc_id = coalesce(nonsensitive(local.core_config["vpc_id"]), null)
 }
 
 resource "aws_security_group" "tag-sg" {
@@ -159,16 +164,16 @@ resource "aws_security_group" "tag-sg" {
 
 ### Security Group (for dev access to tasks)
 locals {
-  needs_dev_access    = anytrue([for _k, entry in var.tasks : entry.permit_dev_access])
-  maybe_group_id      = try(nonsensitive(data.aws_ssm_parameters_by_path.core-config.values[index(data.aws_ssm_parameters_by_path.core-config.names, "${local.core_config_prefix}/dev_access_security_group_id")]), null)
-  dev_access_group_id = local.needs_dev_access ? coalesce(local.maybe_group_id, null) : local.maybe_group_id
+  needs_dev_access                         = anytrue([for _k, entry in var.tasks : entry.permit_dev_access])
+  core_config_dev_access_security_group_id = try(nonsensitive(local.core_config["dev_access_security_group_id"]), null)
+  dev_access_group_id                      = local.needs_dev_access ? coalesce(local.core_config_dev_access_security_group_id, null) : local.core_config_dev_access_security_group_id
 }
 ###
 
 ### Break Glass Key
 locals {
-  maybe_break_glass_key = try(nonsensitive(data.aws_ssm_parameters_by_path.core-config.values[index(data.aws_ssm_parameters_by_path.core-config.names, "${local.core_config_prefix}/break_glass_key_name")]), null)
-  break_glass_key_name  = coalesce(var.break_glass_key_name, local.maybe_break_glass_key)
+  core_config_break_glass_key_name = try(nonsensitive(local.core_config["break_glass_key_name"]), null)
+  break_glass_key_name             = coalesce(var.break_glass_key_name, local.core_config_break_glass_key_name)
 }
 
 ### Baseline IAM role
