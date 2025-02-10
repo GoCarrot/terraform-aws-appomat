@@ -33,8 +33,12 @@ EOM
 }
 
 variable "log_environments" {
-  type    = list(string)
-  default = []
+  type        = list(string)
+  default     = []
+  description = <<-EOM
+  A list of additional log environments to configure, within the account environment. For example a "staging"
+  environment of the application could be present within a production workload account.
+  EOM
 }
 
 variable "services" {
@@ -121,7 +125,8 @@ variable "tasks" {
 }
 
 variable "network_level" {
-  type = string
+  type        = string
+  description = "The default network isolation level the application runs in. One of 'public', 'protected', 'private'"
 }
 
 variable "instance_type" {
@@ -140,17 +145,47 @@ variable "min_size" {
 }
 
 variable "max_size" {
-  type    = number
-  default = null
+  type        = number
+  description = "The default maximum number of instances to run for services in this application"
+  default     = null
 }
 
 variable "volume_size" {
-  type = number
+  type        = number
+  description = <<-EOM
+  The default size of the root volume for application instances in GiB. This must be greater than or equal to
+  the volume size of the AMI for this application.
+  EOM
 }
 
 variable "placement_strategy" {
-  type    = string
-  default = null
+  type        = string
+  description = <<-EOT
+  Sets the default placement strategy for components of the application.
+
+  Determines how instances for this service are distributed within AZs. One of null, "spread", "cluster", or "1"-"7".
+
+  If null, instances will deploy using AWSs default spread strategy, which I _suspect_ is equivalent to "7" applied to
+  all EC2 instances.
+
+  If "spread", will launch EC2 instances on distinct racks with separate network and power source. This minimizes
+  correlated failures across service instances. A maximum of 7 instances per AZ can be launched with this configuration.
+
+  If "cluster", will attempt to colocate instances as much as possible. This may include colocating instances on the
+  same underlying server. This may interfere with autoscaling.
+
+  If "1"-"7", will partition each AZ the service is deployed to into the given number. EC2 will attempt to distribute
+  instances across partitions to reduce correlated failures, while still potentially colocating instances. There are
+  no limits to the number of running instances except those imposed by your account.
+
+  It is not possible to change this variable from a set value to null. If you must change this variable from a previously
+  set value to null, you must manually destroy the AutoScaling Group created by this module. Note that this is a safe operation,
+  the AutoScaling Group managed by this module is exclusively used during service deployments. When a service is not
+  actively in the process of being deployed the AutoScaling Group may be modified, destroyed, or recreated without consequence.
+
+  Defaults to "7".
+EOT
+  default     = null
 }
 
 variable "instance_security_group_ids" {
