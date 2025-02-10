@@ -278,7 +278,7 @@ locals {
   # We can't use coalesce below -- it will also coalesce away empty string, which we explicitly
   # want to support as a component name (mostly for migration purposes)
   component_names = { for key, entry in merge(var.services, var.tasks) : key => try(entry.component_name, null) == null ? key : entry.component_name }
-  component_tags = { for key, name in local.component_names : key => name != "" ? { Component = "${var.name}-${name}" } : { Component = var.name }}
+  component_tags  = { for key, name in local.component_names : key => name != "" ? { Component = "${var.name}-${name}" } : { Component = var.name } }
 }
 
 module "services" {
