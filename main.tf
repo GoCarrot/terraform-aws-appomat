@@ -228,9 +228,10 @@ resource "aws_iam_role_policy_attachment" "default-policies" {
 
 ### Extended IAM roles
 locals {
-  services_to_polices    = { for n, service in var.services : n => service.iam_policy_arns if service.iam_policy_arns != null }
-  tasks_to_policies      = { for n, task in var.tasks : n => task.iam_policy_arns if task.iam_policy_arns != null }
-  components_to_policies = merge(local.services_to_polices, local.tasks_to_policies)
+  components = merge(var.services, var.tasks)
+
+  components_to_tags     = { for n, c in local.components : n => c.tags if c.tags != null && length(c.tags) != 0 }
+  components_to_policies = { for n, c in local.components : n => try(coalesce(c.iam_policy_arns), []) if c.iam_policy_arns != null || try(local.components_to_tags[n], null) != null }
 
   policy_arn_pairs = flatten([for n, arns in local.components_to_policies :
     [for pair in concat(
@@ -253,7 +254,7 @@ resource "aws_iam_role" "extended" {
 
   assume_role_policy = data.aws_iam_policy_document.allow_ec2_assume.json
 
-  tags = local.tags
+  tags = try(merge(local.tags, local.components_to_tags[each.key]), local.tags)
 }
 
 resource "aws_iam_instance_profile" "extended" {
@@ -262,7 +263,7 @@ resource "aws_iam_instance_profile" "extended" {
   path     = "/${local.organization_prefix}/service-role/"
   role     = aws_iam_role.role.name
 
-  tags = local.tags
+  tags = try(merge(local.tags, local.components_to_tags[each.key]), local.tags)
 }
 
 resource "aws_iam_role_policy_attachment" "extended" {

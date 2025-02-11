@@ -28,6 +28,20 @@ mock_provider "aws" {
   }
 
   override_data {
+    target = module.services["sidekiq-beta"].data.aws_ec2_instance_type.instance-info
+    values = {
+      "supported_architectures" = ["arm64"]
+    }
+  }
+
+  override_data {
+    target = module.services["sidekiq-beta"].data.aws_iam_policy_document.allow_ec2_assume
+    values = {
+      "json" = "{}"
+    }
+  }
+
+  override_data {
     target = data.aws_iam_policy_document.allow_ec2_assume
     values = {
       "json" = "{}"
@@ -95,6 +109,28 @@ mock_provider "aws" {
 
   override_data {
     target = module.services["sidekiq"].data.aws_ssm_parameters_by_path.core-config
+    values = {
+      names = ["/test/config/core/config_backup_bucket", "/test/config/core/public_service_subnet_ids"]
+      values = ["configbucket", "subnet-1234"]
+    }
+  }
+
+  override_data {
+    target = module.services["sidekiq-beta"].data.aws_ssm_parameter.account-info
+    values = {
+      value = "{\"prefix\":\"/test\"}"
+    }
+  }
+
+  override_data {
+    target = module.services["sidekiq-beta"].data.aws_ssm_parameter.organization-prefix
+    values = {
+      value = "test"
+    }
+  }
+
+  override_data {
+    target = module.services["sidekiq-beta"].data.aws_ssm_parameters_by_path.core-config
     values = {
       names = ["/test/config/core/config_backup_bucket", "/test/config/core/public_service_subnet_ids"]
       values = ["configbucket", "subnet-1234"]
@@ -190,7 +226,6 @@ run "with_custom_role" {
   variables {
     services = {
       sidekiq = {
-        iam_policy_arns = ["arn:aws:iam::123456789012:policy/test"]
         dropins = {
           "31_db_logs.conf" = { environment = "test", region = "us-east-1" }
         }
@@ -198,6 +233,19 @@ run "with_custom_role" {
         enabled_services = [
           "teak-testapp@sidekiq"
         ]
+      }
+      sidekiq-beta = {
+        dropins = {
+          "31_db_logs.conf" = { environment = "test", region = "us-east-1" }
+        }
+
+        enabled_services = [
+          "teak-testapp@sidekiq"
+        ]
+
+        tags = {
+          Environment = "beta"
+        }
       }
     }
     tasks = {
@@ -215,17 +263,22 @@ run "with_custom_role" {
   }
 
   assert {
-    condition = aws_iam_role.extended["sidekiq"].name == "TestappSidekiqRole"
-    error_message = "Expected an IAM role named TestappSidekiqRole"
+    condition = try(aws_iam_role.extended["sidekiq"].name, null) == null
+    error_message = "Expected that there would not be an IAM role for the base sidekiq service"
   }
 
   assert {
-    condition = aws_iam_role_policy_attachment.extended["sidekiq-arn:aws:iam::123456789012:policy/test"].policy_arn == "arn:aws:iam::123456789012:policy/test"
-    error_message = "Expected an attachment to our given policy"
+    condition = aws_iam_role.extended["sidekiq-beta"].name == "TestappSidekiq-BetaRole"
+    error_message = "Expected an IAM role named TestappSidekiq-BetaRole"
   }
 
   assert {
-    condition = aws_iam_role_policy_attachment.extended["sidekiq-arn:aws:iam::123456789012:policy/ServiceomatBase"].policy_arn == "arn:aws:iam::123456789012:policy/ServiceomatBase"
+    condition = aws_iam_role.extended["sidekiq-beta"].tags["Environment"] == "beta"
+    error_message = "Expected the beta IAM role to have an Environment tag set to beta."
+  }
+
+  assert {
+    condition = aws_iam_role_policy_attachment.extended["sidekiq-beta-arn:aws:iam::123456789012:policy/ServiceomatBase"].policy_arn == "arn:aws:iam::123456789012:policy/ServiceomatBase"
     error_message = "Expected an attachment to default given policy"
   }
 
