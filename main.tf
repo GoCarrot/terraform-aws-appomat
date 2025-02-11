@@ -274,6 +274,20 @@ resource "aws_iam_role_policy_attachment" "extended" {
 }
 ###
 
+### Default AMIs
+data "aws_ssm_parameters_by_path" "ci-cd-account-info" {
+  provider = aws.meta
+
+  path      = "/omat/org_registry/CI-CD/${local.environment}/"
+  recursive = false
+}
+
+locals {
+  ci_cd_account_info = try(jsondecode(data.aws_ssm_parameters_by_path.ci-cd-account-info.values[0]), null)
+  ci_cd_account_id   = try(local.ci_cd_account_info["account_id"], null)
+}
+###
+
 ### Services
 locals {
   # We can't use coalesce below -- it will also coalesce away empty string, which we explicitly
@@ -297,6 +311,9 @@ module "services" {
   network_level  = coalesce(each.value["network_level"], var.network_level)
   instance_type  = coalesce(each.value["instance_type"], var.instance_type)
   volume_size    = coalesce(each.value["volume_size"], var.volume_size)
+
+  ami_owner_id   = local.ci_cd_account_id
+  ami_name_regex = "${try(local.components_to_tags[each.key]["Environment"], local.environment)}_${var.name}_"
 
   placement_strategy = try(coalesce(each.value["placement_strategy"], var.placement_strategy), null)
   min_instances      = coalesce(each.value["min_size"], var.min_size, 2)
@@ -347,6 +364,9 @@ module "tasks" {
   network_level  = coalesce(each.value["network_level"], var.network_level)
   instance_type  = coalesce(each.value["instance_type"], var.instance_type)
   volume_size    = coalesce(each.value["volume_size"], var.volume_size)
+
+  ami_owner_id   = local.ci_cd_account_id
+  ami_name_regex = "${try(local.components_to_tags[each.key]["Environment"], local.environment)}_${var.name}_"
 
   placement_strategy = try(coalesce(each.value["placement_strategy"], var.placement_strategy), null)
   min_instances      = 0
