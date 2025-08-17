@@ -275,6 +275,14 @@ resource "aws_iam_role_policy_attachment" "extended" {
 ###
 
 ### Default AMIs
+data "aws_ssm_parameter" "known-ci-cd-account-info" {
+  count = try(var.automatic_build["build_from_account"], null) != null ? 1 : 0
+
+  provider = aws.meta
+
+  name = "/omat/account_registry/${var.automatic_build["build_from_account"]}"
+}
+
 data "aws_ssm_parameters_by_path" "ci-cd-account-info" {
   provider = aws.meta
 
@@ -283,7 +291,11 @@ data "aws_ssm_parameters_by_path" "ci-cd-account-info" {
 }
 
 locals {
-  ci_cd_account_info = try(jsondecode(data.aws_ssm_parameters_by_path.ci-cd-account-info.values[0]), null)
+  ci_cd_account_info = try(
+    jsondecode(data.aws_ssm_parameter.known-ci-cd-account-info[0].value),
+    jsondecode(data.aws_ssm_parameters_by_path.ci-cd-account-info.values[0]),
+    null
+  )
   ci_cd_account_id   = try(local.ci_cd_account_info["account_id"], null)
 }
 ###
