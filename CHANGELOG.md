@@ -1,3 +1,14 @@
+## 0.1.3
+
+ENHANCEMENTS:
+
+* Update to serviceomat 0.5.4
+* Output created log groups
+
+BUG FIXES:
+
+* Respects automatic_build.build_from_account
+
 ## 0.1.2
 
 ENHANCEMENTS:
