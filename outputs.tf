@@ -17,3 +17,7 @@ output "tasks" {
 output "iam_role" {
   value = aws_iam_role.role
 }
+
+output "log_groups" {
+  value = aws_cloudwatch_log_group.logs
+}
