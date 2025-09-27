@@ -312,7 +312,7 @@ module "services" {
   for_each = var.services
 
   source  = "GoCarrot/serviceomat/aws"
-  version = "~> 0.5.3"
+  version = "~> 0.5.4"
 
   providers = {
     aws.meta = aws.meta
@@ -365,7 +365,7 @@ module "tasks" {
   for_each = var.tasks
 
   source  = "GoCarrot/serviceomat/aws"
-  version = "~> 0.5.3"
+  version = "~> 0.5.4"
 
   providers = {
     aws.meta = aws.meta
