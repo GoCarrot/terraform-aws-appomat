@@ -113,7 +113,7 @@ module "my_app" {
 
 External modules from GoCarrot organization:
 - `GoCarrot/accountomat_read/aws` (~> 0.0.5): Account metadata retrieval
-- `GoCarrot/serviceomat/aws` (~> 0.5.3): EC2 ASG and ALB management
+- `GoCarrot/serviceomat/aws` (~> 0.5.6): EC2 ASG and ALB management
 - `GoCarrot/declare-ami-dependency/aws`: AMI dependency and build triggers
 
 ## SSM Parameter Dependencies
@@ -164,7 +164,7 @@ The module supports three network isolation levels:
 ## Provider Requirements
 
 - Terraform >= 1.8.0
-- AWS Provider >= 4.22, < 6
+- AWS Provider >= 4.22, < 7
 - Two AWS provider configurations required:
   - Default provider for target account resources
   - `aws.meta` provider for metadata and SSM parameter access

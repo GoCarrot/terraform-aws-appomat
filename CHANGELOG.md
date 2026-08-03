@@ -1,3 +1,10 @@
+## 0.1.4
+
+ENHANCEMENTS:
+
+* Allow aws provider 6.x
+* Update to serviceomat 0.5.6
+
 ## 0.1.3
 
 ENHANCEMENTS:
