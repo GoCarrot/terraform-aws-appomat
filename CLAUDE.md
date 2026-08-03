@@ -113,7 +113,7 @@ module "my_app" {
 
 External modules from GoCarrot organization:
 - `GoCarrot/accountomat_read/aws` (~> 0.0.5): Account metadata retrieval
-- `GoCarrot/serviceomat/aws` (~> 0.5.3): EC2 ASG and ALB management
+- `GoCarrot/serviceomat/aws` (~> 0.5.6): EC2 ASG and ALB management
 - `GoCarrot/declare-ami-dependency/aws`: AMI dependency and build triggers
 
 ## SSM Parameter Dependencies
@@ -164,7 +164,7 @@ The module supports three network isolation levels:
 ## Provider Requirements
 
 - Terraform >= 1.8.0
-- AWS Provider >= 4.22, < 6
+- AWS Provider >= 4.22, < 7
 - Two AWS provider configurations required:
   - Default provider for target account resources
   - `aws.meta` provider for metadata and SSM parameter access
@@ -190,35 +190,3 @@ The module is automatically published to the Terraform Registry when:
 2. A new Git tag is created following the version format (e.g., `v0.1.3`)
 
 The Registry will read the module from the GitHub repository at `github.com/GoCarrot/terraform-aws-appomat`
-
-## Git Commit Guidelines
-
-**CRITICAL**: When creating git commits, Claude MUST include ALL user prompts verbatim in the commit message. This is vitally important for tracking and understanding changes.
-
-### Commit Message Format
-```
-<Brief summary of changes>
-
-User prompt 1: "<FULL VERBATIM TEXT of first user prompt>"
-Claude's response: <Explanation of what Claude did in response to this specific prompt>
-
-User prompt 2: "<FULL VERBATIM TEXT of second user prompt>"
-Claude's response: <Explanation of what Claude did in response to this specific prompt>
-
-User prompt 3: "<FULL VERBATIM TEXT of third user prompt>"
-Claude's response: <Explanation of what Claude did in response to this specific prompt>
-
-[Continue for ALL user prompts in the conversation]
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-
-### Important Rules
-1. **ALWAYS include EVERY user prompt in FULL** - do not summarize, paraphrase, or omit any user messages
-2. **Do NOT determine relevance** - ALL user prompts are always relevant and must be included
-3. **Include prompts verbatim** - copy the exact text, including typos, formatting, etc.
-4. **Explain response to EACH prompt** - describe what Claude did in response to each individual user prompt
-5. **Maintain chronological order** - list prompts and responses in the order they occurred
-6. **Use clear labeling** - label each prompt as "User prompt N:" and each response as "Claude's response:"

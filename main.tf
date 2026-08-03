@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 4.22, < 6"
+      version = ">= 4.22, < 7"
 
       configuration_aliases = [aws.meta]
     }
@@ -296,7 +296,7 @@ locals {
     jsondecode(data.aws_ssm_parameters_by_path.ci-cd-account-info.values[0]),
     null
   )
-  ci_cd_account_id   = try(local.ci_cd_account_info["account_id"], null)
+  ci_cd_account_id = try(local.ci_cd_account_info["account_id"], null)
 }
 ###
 
@@ -312,7 +312,7 @@ module "services" {
   for_each = var.services
 
   source  = "GoCarrot/serviceomat/aws"
-  version = "~> 0.5.4"
+  version = "~> 0.5.6"
 
   providers = {
     aws.meta = aws.meta
@@ -365,7 +365,7 @@ module "tasks" {
   for_each = var.tasks
 
   source  = "GoCarrot/serviceomat/aws"
-  version = "~> 0.5.4"
+  version = "~> 0.5.6"
 
   providers = {
     aws.meta = aws.meta
