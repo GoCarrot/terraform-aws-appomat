@@ -332,6 +332,7 @@ module "services" {
   service_name   = var.name
   component_name = local.component_names[each.key]
   network_level  = coalesce(each.value["network_level"], var.network_level)
+  subnet_ids     = each.value["subnet_ids"]
   instance_type  = coalesce(each.value["instance_type"], var.instance_type)
   volume_size    = coalesce(each.value["volume_size"], var.volume_size)
 
@@ -386,6 +387,7 @@ module "tasks" {
   service_name   = var.name
   component_name = each.key
   network_level  = coalesce(each.value["network_level"], var.network_level)
+  subnet_ids     = each.value["subnet_ids"]
   instance_type  = coalesce(each.value["instance_type"], var.instance_type)
   volume_size    = coalesce(each.value["volume_size"], var.volume_size)
 

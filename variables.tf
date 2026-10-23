@@ -44,6 +44,7 @@ variable "log_environments" {
 variable "services" {
   type = map(object({
     network_level                     = optional(string)
+    subnet_ids                        = optional(list(string), [])
     iam_policy_arns                   = optional(list(string))
     instance_type                     = optional(string)
     min_size                          = optional(number)
@@ -107,6 +108,7 @@ variable "services" {
 variable "tasks" {
   type = map(object({
     network_level                     = optional(string)
+    subnet_ids                        = optional(list(string), [])
     iam_policy_arns                   = optional(list(string))
     instance_type                     = optional(string)
     volume_size                       = optional(number)
