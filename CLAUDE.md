@@ -140,6 +140,7 @@ Extended IAM roles created when:
 
 - **IAM Roles**: `<AppName>Role` or `<AppName><ComponentName>Role`
 - **Instance Profiles**: `<AppName>InstanceProfile` or `<AppName><ComponentName>InstanceProfile`  
+  - With `serviceomat_compatible_iam_names`: `<App-Name>-<Component-Name>Role` / `...InstanceProfile` (serviceomat's `title("app-component")`), e.g. `Carrot-SidekiqRole`
 - **Security Groups**: `<app_name>`
 - **Log Groups**: `/<org_prefix>/server/<environment>/service/<app_name>[/<ancillary>]`
 - **ASG Names**: `<app_name>-<component>-template`
@@ -153,6 +154,10 @@ The module supports customizing instance initialization through:
 - **Enabled Services**: Systemd services to enable
 - **Firstboot Services**: Services to run on first boot only
 - **Boot Scripts**: Custom scripts to run during boot
+
+### Gotchas
+- `tasks` is a map, so its `dropins`/`boot_scripts` (`map(any)`) must share one value shape across *every* task. A task with `{}` dropins next to one with `{ environment = ... }` fails type conversion. Give plain files the same template vars (ignored when the file has no template syntax), or use `enabled_services` instead of `boot_scripts`.
+- App-level `placement_strategy` applies to tasks too. To keep tasks out of a placement group, set it per service instead.
 
 ## Network Levels
 

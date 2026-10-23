@@ -297,3 +297,78 @@ run "with_custom_role" {
     error_message = "Expected an attachment to default given policy"
   }
 }
+
+run "with_serviceomat_compatible_iam" {
+  command = plan
+
+  variables {
+    serviceomat_compatible_iam_names    = true
+    extended_profiles_use_extended_role = true
+
+    services = {
+      sidekiq-beta = {
+        component_name = "sidekiq-beta"
+        dropins = {
+          "31_db_logs.conf" = { environment = "test", region = "us-east-1" }
+        }
+
+        enabled_services = [
+          "teak-testapp@sidekiq"
+        ]
+
+        tags = {
+          Environment = "beta"
+        }
+      }
+    }
+    tasks = {
+      db_migrate = {
+        iam_policy_arns = ["arn:aws:iam::123456789012:policy/task-test"]
+        dropins = {
+          "31_db_logs.conf" = { environment = "test", region = "us-east-1" }
+        }
+
+        enabled_services = [
+          "teak-testapp@db_migrate"
+        ]
+      }
+    }
+  }
+
+  assert {
+    condition     = aws_iam_role.extended["sidekiq-beta"].name == "Testapp-Sidekiq-BetaRole"
+    error_message = "Expected the serviceomat-style role name Testapp-Sidekiq-BetaRole"
+  }
+
+  assert {
+    condition     = aws_iam_instance_profile.extended["sidekiq-beta"].name == "Testapp-Sidekiq-BetaInstanceProfile"
+    error_message = "Expected the serviceomat-style instance profile name Testapp-Sidekiq-BetaInstanceProfile"
+  }
+
+  assert {
+    condition     = aws_iam_role.extended["db_migrate"].name == "Testapp-Db_migrateRole"
+    error_message = "Expected the serviceomat-style role name Testapp-Db_migrateRole"
+  }
+
+  assert {
+    condition     = aws_iam_instance_profile.extended["db_migrate"].role == "Testapp-Db_migrateRole"
+    error_message = "Expected the extended instance profile to carry the extended role"
+  }
+}
+
+run "compatible_iam_rejects_base_role_collision" {
+  command = plan
+
+  variables {
+    serviceomat_compatible_iam_names = true
+
+    services = {
+      sidekiq-beta = {
+        component_name = ""
+        tags           = { Environment = "beta" }
+      }
+    }
+  }
+
+  expect_failures = [aws_iam_role.extended]
+}

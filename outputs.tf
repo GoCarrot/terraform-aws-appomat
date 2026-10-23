@@ -21,3 +21,7 @@ output "iam_role" {
 output "log_groups" {
   value = aws_cloudwatch_log_group.logs
 }
+
+output "extended_iam_roles" {
+  value = aws_iam_role.extended
+}

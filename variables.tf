@@ -44,6 +44,7 @@ variable "log_environments" {
 variable "services" {
   type = map(object({
     network_level                     = optional(string)
+    subnet_ids                        = optional(list(string), [])
     iam_policy_arns                   = optional(list(string))
     instance_type                     = optional(string)
     min_size                          = optional(number)
@@ -91,6 +92,8 @@ variable "services" {
     detailed_instance_monitoring  = optional(bool, false)
     port                          = optional(number, 80)
     load_balancing_algorithm_type = optional(string, "round_robin")
+    lb_deregistration_delay       = optional(number, 300)
+    ami_environment               = optional(string)
     break_glass_key_name          = optional(string, )
     dropins                       = optional(map(any), {})
     packages                      = optional(list(string), [])
@@ -103,8 +106,10 @@ variable "services" {
 }
 
 variable "tasks" {
+  description = "One-off task templates. dropins and boot_scripts are map(any), so their values must share one type shape across every task."
   type = map(object({
     network_level                     = optional(string)
+    subnet_ids                        = optional(list(string), [])
     iam_policy_arns                   = optional(list(string))
     instance_type                     = optional(string)
     volume_size                       = optional(number)
@@ -119,6 +124,7 @@ variable "tasks" {
     firstboot_services                = optional(list(string), [])
     boot_scripts                      = optional(map(any), {})
     permit_dev_access                 = optional(bool, true)
+    ami_environment                   = optional(string)
     tags                              = optional(map(string), {})
   }))
   default = {}
@@ -178,6 +184,8 @@ variable "placement_strategy" {
   instances across partitions to reduce correlated failures, while still potentially colocating instances. There are
   no limits to the number of running instances except those imposed by your account.
 
+  Applies to tasks as well as services. Set placement_strategy per service instead to keep tasks out of placement groups.
+
   It is not possible to change this variable from a set value to null. If you must change this variable from a previously
   set value to null, you must manually destroy the AutoScaling Group created by this module. Note that this is a safe operation,
   the AutoScaling Group managed by this module is exclusively used during service deployments. When a service is not
@@ -209,4 +217,22 @@ variable "tags" {
   control tags assigned to ASG instances. Tags here will override default tags in the event of a conflict.
   EOT
   default     = {}
+}
+
+variable "serviceomat_compatible_iam_names" {
+  type        = bool
+  description = <<-EOT
+  Name extended IAM roles and instance profiles the way serviceomat did (e.g. "Carrot-SidekiqRole" rather than
+  "CarrotSidekiqRole"), so a consumer migrating off serviceomat keeps its existing roles instead of replacing them.
+  EOT
+  default     = false
+}
+
+variable "extended_profiles_use_extended_role" {
+  type        = bool
+  description = <<-EOT
+  Attach each component's extended IAM role to its extended instance profile. When false, extended instance profiles
+  carry the application's default role, so policies attached to the extended role never reach instances.
+  EOT
+  default     = false
 }
