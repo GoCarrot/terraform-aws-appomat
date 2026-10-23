@@ -244,10 +244,21 @@ locals {
   policy_arn_groups = { for entry in local.policy_arn_pairs : join("-", [entry.key, entry.arn]) => entry }
 }
 
+locals {
+  # serviceomat named a component's role after its full service name ("Carrot-SidekiqRole"); appomat drops the
+  # hyphen ("CarrotSidekiqRole"). IAM names are ForceNew, so a consumer migrating off serviceomat that took the
+  # appomat name would delete the role its running instances hold, mid-apply.
+  extended_name_bases = { for key, _ in local.components_to_policies : key => (
+    var.serviceomat_compatible_iam_names
+    ? title(join("-", compact([var.name, local.component_names[key]])))
+    : "${title(var.name)}${title(key)}"
+  ) }
+}
+
 resource "aws_iam_role" "extended" {
   for_each = local.components_to_policies
 
-  name = "${title(var.name)}${title(each.key)}Role"
+  name = "${local.extended_name_bases[each.key]}Role"
   path = "/${local.organization_prefix}/service-role/"
 
   description = "Default role assumed by servers running the ${var.name} application - ${each.key} component."
@@ -259,9 +270,9 @@ resource "aws_iam_role" "extended" {
 
 resource "aws_iam_instance_profile" "extended" {
   for_each = local.components_to_policies
-  name     = "${title(var.name)}${title(each.key)}InstanceProfile"
+  name     = "${local.extended_name_bases[each.key]}InstanceProfile"
   path     = "/${local.organization_prefix}/service-role/"
-  role     = aws_iam_role.role.name
+  role     = var.extended_profiles_use_extended_role ? aws_iam_role.extended[each.key].name : aws_iam_role.role.name
 
   tags = try(merge(local.tags, local.components_to_tags[each.key]), local.tags)
 }
@@ -325,7 +336,7 @@ module "services" {
   volume_size    = coalesce(each.value["volume_size"], var.volume_size)
 
   ami_owner_id   = local.ci_cd_account_id
-  ami_name_regex = "${try(local.components_to_tags[each.key]["Environment"], local.environment)}_${var.name}_"
+  ami_name_regex = "${coalesce(each.value["ami_environment"], try(local.components_to_tags[each.key]["Environment"], local.environment))}_${var.name}_"
 
   placement_strategy = try(coalesce(each.value["placement_strategy"], var.placement_strategy), null)
   min_instances      = coalesce(each.value["min_size"], var.min_size, 2)
@@ -351,6 +362,7 @@ module "services" {
   health_check                  = each.value["health_check"]
   port                          = each.value["port"]
   load_balancing_algorithm_type = each.value["load_balancing_algorithm_type"]
+  lb_deregistration_delay       = each.value["lb_deregistration_delay"]
 
   dropins            = each.value["dropins"]
   packages           = each.value["packages"]
@@ -378,7 +390,7 @@ module "tasks" {
   volume_size    = coalesce(each.value["volume_size"], var.volume_size)
 
   ami_owner_id   = local.ci_cd_account_id
-  ami_name_regex = "${try(local.components_to_tags[each.key]["Environment"], local.environment)}_${var.name}_"
+  ami_name_regex = "${coalesce(each.value["ami_environment"], try(local.components_to_tags[each.key]["Environment"], local.environment))}_${var.name}_"
 
   placement_strategy = try(coalesce(each.value["placement_strategy"], var.placement_strategy), null)
   min_instances      = 0

@@ -91,6 +91,8 @@ variable "services" {
     detailed_instance_monitoring  = optional(bool, false)
     port                          = optional(number, 80)
     load_balancing_algorithm_type = optional(string, "round_robin")
+    lb_deregistration_delay       = optional(number, 300)
+    ami_environment               = optional(string)
     break_glass_key_name          = optional(string, )
     dropins                       = optional(map(any), {})
     packages                      = optional(list(string), [])
@@ -119,6 +121,7 @@ variable "tasks" {
     firstboot_services                = optional(list(string), [])
     boot_scripts                      = optional(map(any), {})
     permit_dev_access                 = optional(bool, true)
+    ami_environment                   = optional(string)
     tags                              = optional(map(string), {})
   }))
   default = {}
@@ -209,4 +212,22 @@ variable "tags" {
   control tags assigned to ASG instances. Tags here will override default tags in the event of a conflict.
   EOT
   default     = {}
+}
+
+variable "serviceomat_compatible_iam_names" {
+  type        = bool
+  description = <<-EOT
+  Name extended IAM roles and instance profiles the way serviceomat did (e.g. "Carrot-SidekiqRole" rather than
+  "CarrotSidekiqRole"), so a consumer migrating off serviceomat keeps its existing roles instead of replacing them.
+  EOT
+  default     = false
+}
+
+variable "extended_profiles_use_extended_role" {
+  type        = bool
+  description = <<-EOT
+  Attach each component's extended IAM role to its extended instance profile. When false, extended instance profiles
+  carry the application's default role, so policies attached to the extended role never reach instances.
+  EOT
+  default     = false
 }
