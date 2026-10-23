@@ -355,3 +355,20 @@ run "with_serviceomat_compatible_iam" {
     error_message = "Expected the extended instance profile to carry the extended role"
   }
 }
+
+run "compatible_iam_rejects_base_role_collision" {
+  command = plan
+
+  variables {
+    serviceomat_compatible_iam_names = true
+
+    services = {
+      sidekiq-beta = {
+        component_name = ""
+        tags           = { Environment = "beta" }
+      }
+    }
+  }
+
+  expect_failures = [aws_iam_role.extended]
+}

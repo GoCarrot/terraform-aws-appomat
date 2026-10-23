@@ -266,6 +266,13 @@ resource "aws_iam_role" "extended" {
   assume_role_policy = data.aws_iam_policy_document.allow_ec2_assume.json
 
   tags = try(merge(local.tags, local.components_to_tags[each.key]), local.tags)
+
+  lifecycle {
+    precondition {
+      condition     = local.extended_name_bases[each.key] != title(var.name)
+      error_message = "Component ${each.key} has an empty component_name and needs its own role; with serviceomat_compatible_iam_names that role would collide with the default ${title(var.name)}Role."
+    }
+  }
 }
 
 resource "aws_iam_instance_profile" "extended" {

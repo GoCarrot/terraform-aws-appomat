@@ -140,6 +140,7 @@ Extended IAM roles created when:
 
 - **IAM Roles**: `<AppName>Role` or `<AppName><ComponentName>Role`
 - **Instance Profiles**: `<AppName>InstanceProfile` or `<AppName><ComponentName>InstanceProfile`  
+  - With `serviceomat_compatible_iam_names`: `<App-Name>-<Component-Name>Role` / `...InstanceProfile` (serviceomat's `title("app-component")`), e.g. `Carrot-SidekiqRole`
 - **Security Groups**: `<app_name>`
 - **Log Groups**: `/<org_prefix>/server/<environment>/service/<app_name>[/<ancillary>]`
 - **ASG Names**: `<app_name>-<component>-template`
