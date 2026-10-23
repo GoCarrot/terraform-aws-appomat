@@ -106,6 +106,7 @@ variable "services" {
 }
 
 variable "tasks" {
+  description = "One-off task templates. dropins and boot_scripts are map(any), so their values must share one type shape across every task."
   type = map(object({
     network_level                     = optional(string)
     subnet_ids                        = optional(list(string), [])
@@ -182,6 +183,8 @@ variable "placement_strategy" {
   If "1"-"7", will partition each AZ the service is deployed to into the given number. EC2 will attempt to distribute
   instances across partitions to reduce correlated failures, while still potentially colocating instances. There are
   no limits to the number of running instances except those imposed by your account.
+
+  Applies to tasks as well as services. Set placement_strategy per service instead to keep tasks out of placement groups.
 
   It is not possible to change this variable from a set value to null. If you must change this variable from a previously
   set value to null, you must manually destroy the AutoScaling Group created by this module. Note that this is a safe operation,

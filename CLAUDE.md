@@ -155,6 +155,10 @@ The module supports customizing instance initialization through:
 - **Firstboot Services**: Services to run on first boot only
 - **Boot Scripts**: Custom scripts to run during boot
 
+### Gotchas
+- `tasks` is a map, so its `dropins`/`boot_scripts` (`map(any)`) must share one value shape across *every* task. A task with `{}` dropins next to one with `{ environment = ... }` fails type conversion. Give plain files the same template vars (ignored when the file has no template syntax), or use `enabled_services` instead of `boot_scripts`.
+- App-level `placement_strategy` applies to tasks too. To keep tasks out of a placement group, set it per service instead.
+
 ## Network Levels
 
 The module supports three network isolation levels:
