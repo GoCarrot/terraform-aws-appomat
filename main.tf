@@ -231,7 +231,7 @@ locals {
   components = merge(var.services, var.tasks)
 
   components_to_tags     = { for n, c in local.components : n => c.tags if c.tags != null && length(c.tags) != 0 }
-  components_to_policies = { for n, c in local.components : n => try(coalesce(c.iam_policy_arns), []) if c.iam_policy_arns != null || try(local.components_to_tags[n], null) != null }
+  components_to_policies = { for n, c in local.components : n => try(coalesce(c.iam_policy_arns), []) if c.iam_policy_arns != null || c.iam_policies != null || try(local.components_to_tags[n], null) != null }
 
   policy_arn_pairs = flatten([for n, arns in local.components_to_policies :
     [for pair in concat(
@@ -241,7 +241,14 @@ locals {
     ]
   ])
 
+  # Keyed by ARN, so every ARN in iam_policy_arns must be known at plan time. Use iam_policies for ARNs that aren't.
   policy_arn_groups = { for entry in local.policy_arn_pairs : join("-", [entry.key, entry.arn]) => entry }
+
+  # Keyed by the caller's static name, so the ARN may be unknown at plan time. Names are validated to [A-Za-z0-9_]+:
+  # no "-", so "<component>-<name>" stays unique even though component names contain "-" (e.g. "sidekiq-beta").
+  policy_named_groups = merge([for n, c in local.components : {
+    for name, arn in(c.iam_policies == null ? {} : c.iam_policies) : join("-", [n, name]) => { key = n, arn = arn }
+  }]...)
 }
 
 locals {
@@ -286,6 +293,13 @@ resource "aws_iam_instance_profile" "extended" {
 
 resource "aws_iam_role_policy_attachment" "extended" {
   for_each = local.policy_arn_groups
+
+  role       = aws_iam_role.extended[each.value.key].name
+  policy_arn = each.value.arn
+}
+
+resource "aws_iam_role_policy_attachment" "extended_named" {
+  for_each = local.policy_named_groups
 
   role       = aws_iam_role.extended[each.value.key].name
   policy_arn = each.value.arn

@@ -46,6 +46,7 @@ variable "services" {
     network_level                     = optional(string)
     subnet_ids                        = optional(list(string), [])
     iam_policy_arns                   = optional(list(string))
+    iam_policies                      = optional(map(string))
     instance_type                     = optional(string)
     min_size                          = optional(number)
     max_size                          = optional(number)
@@ -103,6 +104,11 @@ variable "services" {
     tags                          = optional(map(string), {})
   }))
   default = {}
+
+  validation {
+    condition     = alltrue([for c in values(var.services) : c.iam_policies == null || alltrue([for name in keys(c.iam_policies) : can(regex("^[A-Za-z0-9_]+$", name))])])
+    error_message = "iam_policies keys must be letters, digits and underscores only (no hyphens), so attachment keys of the form component-name stay unique."
+  }
 }
 
 variable "tasks" {
@@ -111,6 +117,7 @@ variable "tasks" {
     network_level                     = optional(string)
     subnet_ids                        = optional(list(string), [])
     iam_policy_arns                   = optional(list(string))
+    iam_policies                      = optional(map(string))
     instance_type                     = optional(string)
     volume_size                       = optional(number)
     placement_strategy                = optional(string)
@@ -128,6 +135,11 @@ variable "tasks" {
     tags                              = optional(map(string), {})
   }))
   default = {}
+
+  validation {
+    condition     = alltrue([for c in values(var.tasks) : c.iam_policies == null || alltrue([for name in keys(c.iam_policies) : can(regex("^[A-Za-z0-9_]+$", name))])])
+    error_message = "iam_policies keys must be letters, digits and underscores only (no hyphens), so attachment keys of the form component-name stay unique."
+  }
 }
 
 variable "network_level" {

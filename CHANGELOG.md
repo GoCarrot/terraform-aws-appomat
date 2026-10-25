@@ -1,3 +1,9 @@
+## 0.1.6
+
+ENHANCEMENTS:
+
+* Services and tasks accept `iam_policies`, a map of static name to policy ARN. Attachments are keyed by name rather than ARN, so the ARN of a policy created in the same apply may be unknown at plan time. `iam_policy_arns` is unchanged and still needs plan-time-known ARNs. Don't list the same policy in both; each creates its own attachment.
+
 ## 0.1.5
 
 ENHANCEMENTS:

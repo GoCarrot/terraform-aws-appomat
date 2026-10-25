@@ -372,3 +372,60 @@ run "compatible_iam_rejects_base_role_collision" {
 
   expect_failures = [aws_iam_role.extended]
 }
+
+run "with_named_policies" {
+  command = plan
+
+  variables {
+    services = {}
+    tasks = {
+      db_migrate = {
+        iam_policies = {
+          s3      = "arn:aws:iam::123456789012:policy/s3"
+          created = "arn:aws:iam::123456789012:policy/created"
+        }
+        dropins = {
+          "31_db_logs.conf" = { environment = "test", region = "us-east-1" }
+        }
+
+        enabled_services = [
+          "teak-testapp@db_migrate"
+        ]
+      }
+    }
+  }
+
+  assert {
+    condition     = aws_iam_role.extended["db_migrate"].name == "TestappDb_migrateRole"
+    error_message = "Expected iam_policies alone to create the extended role"
+  }
+
+  assert {
+    condition     = aws_iam_role_policy_attachment.extended_named["db_migrate-s3"].policy_arn == "arn:aws:iam::123456789012:policy/s3"
+    error_message = "Expected a name-keyed attachment to the given policy"
+  }
+
+  assert {
+    condition     = aws_iam_role_policy_attachment.extended["db_migrate-arn:aws:iam::123456789012:policy/ServiceomatBase"].policy_arn == "arn:aws:iam::123456789012:policy/ServiceomatBase"
+    error_message = "Expected default policies to stay ARN-keyed"
+  }
+}
+
+run "named_policies_reject_arn_like_names" {
+  command = plan
+
+  variables {
+    services = {}
+    tasks = {
+      db_migrate = {
+        iam_policies = { "arn:aws:iam::1:policy/x" = "arn:aws:iam::123456789012:policy/x" }
+        dropins = {
+          "31_db_logs.conf" = { environment = "test", region = "us-east-1" }
+        }
+        enabled_services = ["teak-testapp@db_migrate"]
+      }
+    }
+  }
+
+  expect_failures = [var.tasks]
+}
