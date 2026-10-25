@@ -25,9 +25,7 @@ jobs:
       - run:
           name: terraform init
           command: terraform init -backend=false
-      # No `terraform validate`: the module root declares aws.meta via
-      # configuration_aliases and has no provider config, so validate always
-      # fails there. `terraform test` validates the module and the test files.
+      # No validate: aws.meta has no provider config at the module root; terraform test validates.
       - run:
           name: terraform test
           command: terraform test
@@ -55,8 +53,7 @@ workflows:
               ignore: /.*/
       - promote:
           requires:
-            - test-tf-1.8.5
-            - test-tf-1.16.4
+            - test
           filters:
             branches:
               only: main

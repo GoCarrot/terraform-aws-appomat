@@ -198,4 +198,4 @@ The module is automatically published to the Terraform Registry when:
 The Registry will read the module from the GitHub repository at `github.com/GoCarrot/terraform-aws-appomat`
 
 ### Releasing
-CircleCI runs fmt and `terraform test` on 1.8.5 and 1.16.4 for every push. To release: merge to `main`, then push a commit to `main` with the subject `Promote to: vX.Y.Z`. CI tags it once the tests pass; a main push without that subject makes no tag.
+CircleCI runs fmt and `terraform test` on the oldest consumer and the target terraform versions (see `.circleci/config.yml`) for every push. To release: merge to `main`, then push a commit to `main` with the subject `Promote to: vX.Y.Z`. CI tags it once the tests pass; a main push without that subject makes no tag.
