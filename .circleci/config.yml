@@ -1,0 +1,60 @@
+version: 2.1
+
+orbs:
+  buildomat: teak/buildomat@0.1
+  teak: teak/sdk-utils@1
+
+jobs:
+  test:
+    parameters:
+      terraform_version:
+        type: string
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - buildomat/terraform-install:
+          version: << parameters.terraform_version >>
+      - run:
+          name: terraform fmt
+          command: terraform fmt -check -recursive
+      - run:
+          name: terraform init
+          command: terraform init -backend=false
+      # No `terraform validate`: the module root declares aws.meta via
+      # configuration_aliases and has no provider config, so validate always
+      # fails there. `terraform test` validates the module and the test files.
+      - run:
+          name: terraform test
+          command: terraform test
+
+  promote:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      # Reads `Promote to: vX.Y.Z` from the commit subject; no match, no tag.
+      # TODO: pass `fingerprint:` once the tag-push deploy key is set up.
+      - teak/tag-promote
+
+workflows:
+  test-and-promote:
+    jobs:
+      - test:
+          name: test-tf-<< matrix.terraform_version >>
+          matrix:
+            parameters:
+              # Oldest terraform consumers run, and the version they're moving to.
+              terraform_version: ["1.8.5", "1.16.4"]
+          filters:
+            tags:
+              ignore: /.*/
+      - promote:
+          requires:
+            - test-tf-1.8.5
+            - test-tf-1.16.4
+          filters:
+            branches:
+              only: main
+            tags:
+              ignore: /.*/
