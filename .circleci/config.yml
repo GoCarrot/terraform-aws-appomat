@@ -15,6 +15,10 @@ jobs:
       - checkout
       - buildomat/terraform-install:
           version: << parameters.terraform_version >>
+      # The orb installs to ~/terraform without putting it on PATH.
+      - run:
+          name: Put terraform on PATH
+          command: echo 'export PATH="$HOME/terraform:$PATH"' >> "$BASH_ENV"
       - run:
           name: terraform fmt
           command: terraform fmt -check -recursive
