@@ -34,8 +34,8 @@ jobs:
     steps:
       - checkout
       # Reads `Promote to: vX.Y.Z` from the commit subject; no match, no tag.
-      # TODO: pass `fingerprint:` once the tag-push deploy key is set up.
-      - teak/tag-promote
+      - teak/tag-promote:
+          fingerprint: "SHA256:C1oo7oLLB0hA0/do/3suV80naX10CW0EIPQ3dgGz4rg"
 
 workflows:
   test-and-promote:
