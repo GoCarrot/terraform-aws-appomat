@@ -108,7 +108,7 @@ module "my_app" {
 - `min_size`/`max_size`: Default auto-scaling limits
 - `placement_strategy`: EC2 placement strategy
 - `iam_policy_arns`: Additional IAM policies to attach, as a list; attachments are keyed by ARN, so every ARN must be known at plan time
-- `iam_policies`: Same, as a map of static name → ARN; attachments are keyed by name, so ARNs of policies created in the same apply are fine. Names are `[A-Za-z0-9_]+`
+- `iam_policies`: Same, as a map of static name → ARN; attachments are keyed by name, so ARNs of policies created in the same apply are fine. Names are `[A-Za-z0-9_]+`. Don't list the same policy in both `iam_policy_arns` and `iam_policies`
 
 ## Module Dependencies
 

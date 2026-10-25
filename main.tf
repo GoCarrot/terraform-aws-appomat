@@ -230,8 +230,7 @@ resource "aws_iam_role_policy_attachment" "default-policies" {
 locals {
   components = merge(var.services, var.tasks)
 
-  components_to_tags = { for n, c in local.components : n => c.tags if c.tags != null && length(c.tags) != 0 }
-  # A component gets an extended role if it has tags, iam_policy_arns, or iam_policies.
+  components_to_tags     = { for n, c in local.components : n => c.tags if c.tags != null && length(c.tags) != 0 }
   components_to_policies = { for n, c in local.components : n => try(coalesce(c.iam_policy_arns), []) if c.iam_policy_arns != null || c.iam_policies != null || try(local.components_to_tags[n], null) != null }
 
   policy_arn_pairs = flatten([for n, arns in local.components_to_policies :
@@ -245,8 +244,8 @@ locals {
   # Keyed by ARN, so every ARN in iam_policy_arns must be known at plan time. Use iam_policies for ARNs that aren't.
   policy_arn_groups = { for entry in local.policy_arn_pairs : join("-", [entry.key, entry.arn]) => entry }
 
-  # Keyed by the caller's static name, so the ARN may be unknown at plan time. Names are validated to
-  # [A-Za-z0-9_]+, so "<component>-<name>" can't collide with an ARN key (those contain ":").
+  # Keyed by the caller's static name, so the ARN may be unknown at plan time. Names are validated to [A-Za-z0-9_]+:
+  # no "-", so "<component>-<name>" stays unique even though component names contain "-" (e.g. "sidekiq-beta").
   policy_named_groups = merge([for n, c in local.components : {
     for name, arn in(c.iam_policies == null ? {} : c.iam_policies) : join("-", [n, name]) => { key = n, arn = arn }
   }]...)

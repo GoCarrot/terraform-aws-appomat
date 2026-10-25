@@ -166,10 +166,6 @@ run "named_policy_with_unknown_arn_plans" {
     source = "./tests/unknown_arn"
   }
 
-  variables {
-    use_named = true
-  }
-
   assert {
     condition     = length(module.app.extended_iam_roles) == 1
     error_message = "Expected the db_migrate extended role"

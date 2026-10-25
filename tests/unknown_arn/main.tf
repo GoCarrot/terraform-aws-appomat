@@ -8,10 +8,6 @@ terraform {
   }
 }
 
-variable "use_named" {
-  type = bool
-}
-
 resource "aws_iam_policy" "created" {
   name   = "created"
   policy = "{}"
@@ -33,8 +29,7 @@ module "app" {
 
   tasks = {
     db_migrate = {
-      iam_policy_arns = var.use_named ? null : [aws_iam_policy.created.arn]
-      iam_policies    = var.use_named ? { created = aws_iam_policy.created.arn } : null
+      iam_policies = { created = aws_iam_policy.created.arn }
       dropins = {
         "31_db_logs.conf" = { environment = "test", region = "us-east-1" }
       }

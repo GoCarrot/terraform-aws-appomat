@@ -107,7 +107,7 @@ variable "services" {
 
   validation {
     condition     = alltrue([for c in values(var.services) : c.iam_policies == null || alltrue([for name in keys(c.iam_policies) : can(regex("^[A-Za-z0-9_]+$", name))])])
-    error_message = "iam_policies keys must be letters, digits and underscores only, so they can't collide with each other or with ARN-keyed attachments."
+    error_message = "iam_policies keys must be letters, digits and underscores only (no hyphens), so attachment keys of the form component-name stay unique."
   }
 }
 
@@ -138,7 +138,7 @@ variable "tasks" {
 
   validation {
     condition     = alltrue([for c in values(var.tasks) : c.iam_policies == null || alltrue([for name in keys(c.iam_policies) : can(regex("^[A-Za-z0-9_]+$", name))])])
-    error_message = "iam_policies keys must be letters, digits and underscores only, so they can't collide with each other or with ARN-keyed attachments."
+    error_message = "iam_policies keys must be letters, digits and underscores only (no hyphens), so attachment keys of the form component-name stay unique."
   }
 }
 
