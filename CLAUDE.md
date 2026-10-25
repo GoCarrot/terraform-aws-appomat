@@ -107,7 +107,8 @@ module "my_app" {
 - `volume_size`: EBS volume size for instances
 - `min_size`/`max_size`: Default auto-scaling limits
 - `placement_strategy`: EC2 placement strategy
-- `iam_policy_arns`: Additional IAM policies to attach
+- `iam_policy_arns`: Additional IAM policies to attach, as a list; attachments are keyed by ARN, so every ARN must be known at plan time
+- `iam_policies`: Same, as a map of static name → ARN; attachments are keyed by name, so ARNs of policies created in the same apply are fine. Names are `[A-Za-z0-9_]+`
 
 ## Module Dependencies
 
@@ -134,7 +135,7 @@ Default policies attached to all roles:
 
 Extended IAM roles created when:
 - Custom tags specified for a service/task
-- Additional IAM policy ARNs provided via `iam_policy_arns`
+- Additional IAM policies provided via `iam_policy_arns` or `iam_policies`
 
 ## Naming Conventions
 
