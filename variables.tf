@@ -106,7 +106,7 @@ variable "services" {
   default = {}
 
   validation {
-    condition     = alltrue([for c in values(var.services) : c.iam_policies == null || alltrue([for name in keys(c.iam_policies) : can(regex("^[A-Za-z0-9_]+$", name))])])
+    condition     = alltrue([for c in values(var.services) : alltrue([for name in keys(c.iam_policies == null ? {} : c.iam_policies) : can(regex("^[A-Za-z0-9_]+$", name))])])
     error_message = "iam_policies keys must be letters, digits and underscores only (no hyphens), so attachment keys of the form component-name stay unique."
   }
 }
@@ -137,7 +137,7 @@ variable "tasks" {
   default = {}
 
   validation {
-    condition     = alltrue([for c in values(var.tasks) : c.iam_policies == null || alltrue([for name in keys(c.iam_policies) : can(regex("^[A-Za-z0-9_]+$", name))])])
+    condition     = alltrue([for c in values(var.tasks) : alltrue([for name in keys(c.iam_policies == null ? {} : c.iam_policies) : can(regex("^[A-Za-z0-9_]+$", name))])])
     error_message = "iam_policies keys must be letters, digits and underscores only (no hyphens), so attachment keys of the form component-name stay unique."
   }
 }

@@ -1,3 +1,9 @@
+## 0.1.7
+
+BUG FIXES:
+
+* The `iam_policies` key validation on `services` and `tasks` no longer calls `keys(null)` when `iam_policies` is unset. 0.1.6 failed every plan on terraform < 1.12, where `||` doesn't short-circuit. Use 0.1.7 instead of 0.1.6.
+
 ## 0.1.6
 
 ENHANCEMENTS:
