@@ -34,8 +34,8 @@ jobs:
     steps:
       - checkout
       # Reads `Promote to: vX.Y.Z` from the commit subject; no match, no tag.
-      - teak/tag-promote:
-          fingerprint: "SHA256:C1oo7oLLB0hA0/do/3suV80naX10CW0EIPQ3dgGz4rg"
+      # Pushes with the project's user key (it is the checkout key), like the SDK repos.
+      - teak/tag-promote
 
 workflows:
   test-and-promote:
