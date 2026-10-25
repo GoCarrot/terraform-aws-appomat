@@ -396,7 +396,7 @@ run "with_named_policies" {
   }
 
   assert {
-    condition     = aws_iam_role.extended["db_migrate"].name == "Broken"
+    condition     = aws_iam_role.extended["db_migrate"].name == "TestappDb_migrateRole"
     error_message = "Expected iam_policies alone to create the extended role"
   }
 
